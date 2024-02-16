@@ -226,8 +226,9 @@ class Server:
 
     def broadcast(self, output_str):
         #send broadcastsu
+        output_str = output_str.encode('utf-8')
         for client_id in self.user_conn:
-            self.user_conn[client_id].send(output_str.encode("utf-8 "))
+            self.user_conn[client_id].send(output_str)
     
     def unicast(self, source, target_user, message_str):
         #check friend relationship for part4

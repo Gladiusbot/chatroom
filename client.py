@@ -4,7 +4,7 @@ import socket
 import time
 import sys
 
-DEBUG_BIT = True
+DEBUG_BIT = False 
 
 def listening_worker(conn):
     print("listener working...")
@@ -50,17 +50,17 @@ def speaking_worker(conn):
 def main():
     #acquire locel ip and port
     client_ip = socket.gethostname()
-    while True:
-        if DEBUG_BIT:
-            client_port = 58001
-            break
-        client_port = int(input(
-                "select a port for local socket in range[58000, 58998]:"
-            ))
-        if client_port not in range(58000, 58999):
-            print("please select a port in range[58000, 58998]")
-        else:
-            break
+    # while True:
+        # if DEBUG_BIT:
+        #     client_port = 58001
+        #     break
+        # client_port = int(input(
+        #         "select a port for local socket in range[58000, 58998]:"
+        #     ))
+        # if client_port not in range(58000, 58999):
+        #     print("please select a port in range[58000, 58998]")
+        # else:
+        #     break
     #user input server ip and port
     if DEBUG_BIT:
         server_ip = "localhost"
