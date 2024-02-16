@@ -203,15 +203,16 @@ class Server:
             if friend_req_bit:
                 continue
             #check for unicast
-            for word in client_split:
-                self.user_conn_lock.acquire()
-                if word[0] ==  '@' and word[1:] in self.user_conn.keys():
-                    #send unicast
-                    unicast_bit = True
-                    self.unicast(user_nickname, word[1:], client_str)
+            if len(client_split) > 0:
+                for word in client_split:
+                    self.user_conn_lock.acquire()
+                    if len(word) > 1 and word[0] ==  '@' and word[1:] in self.user_conn.keys():
+                        #send unicast
+                        unicast_bit = True
+                        self.unicast(user_nickname, word[1:], client_str)
+                        self.user_conn_lock.release()
+                        break
                     self.user_conn_lock.release()
-                    break
-                self.user_conn_lock.release()
             #broadcast
             if not unicast_bit: 
                 broadcast_str = "<"  \
