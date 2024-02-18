@@ -28,9 +28,11 @@ void session(socket_ptr sock) {
 }
 
 void server(boost::asio::io_context& io_context, unsigned short port) {
+  // 通过传入的上下文和新建的endpoint创建acceptor
   boost::asio::ip::tcp::acceptor a(
       io_context,
       boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port));
+  // 创建服务线程
   for (;;) {
     socket_ptr socket(new boost::asio::ip::tcp::socket(io_context));
     a.accept(*socket);
@@ -41,7 +43,9 @@ void server(boost::asio::io_context& io_context, unsigned short port) {
 
 int main() {
   try {
+    // 创建上下文
     boost::asio::io_context ioc;
+    // 通过上下文创建服务线程
     server(ioc, SERVER_PORT_NUMBER);
     for (auto& t : thread_set) {
       t->join();
