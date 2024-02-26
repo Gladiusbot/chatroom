@@ -5,6 +5,11 @@ import time
 import sys
 
 DEBUG_BIT = False 
+args = sys.argv
+
+if DEBUG_BIT:
+    import pdb
+    pdb.set_trace()
 
 def listening_worker(conn):
     print("listener working...")
@@ -26,17 +31,17 @@ def listening_worker(conn):
 def speaking_worker(conn):
     while True:
         #user type in message
-        user_input_str = sys.stdin.readline().encode("utf-8")
+        user_input_str_bytes = sys.stdin.readline().encode("utf-8")
         try:
             #send user input string to server
-            conn.send(user_input_str)
+            conn.send(user_input_str_bytes )
         except:
             print("connection error in speaking thread")
             break
-        if user_input_str == b"LogOut\n":
+        if user_input_str_bytes  == b"LogOut\n":
             print("speaking thread terminated")
             break
-        elif user_input_str == b"StickyTest\n":
+        elif user_input_str_bytes  == b"StickyTest\n":
             for i in range(10):
                 tmpstr = ""
                 for j in range(10):
@@ -65,6 +70,9 @@ def main():
     if DEBUG_BIT:
         server_ip = "localhost"
         server_port = 58000
+    elif len(args) == 3:
+        server_ip = str(args[1])
+        server_port = int(args[2])
     else:
         server_ip = str(input("input server ip:"))
         server_port = int(input("input port:"))

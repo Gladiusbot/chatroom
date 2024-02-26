@@ -6,7 +6,7 @@ int main() {
   try {
     boost::asio::io_context ioc;
     boost::asio::ip::tcp::endpoint remote_ep(
-        boost::asio::ip::address::from_string(server_ip), server_port);
+        boost::asio::ip::address::from_string(server_ip), SERVER_PORT_NUMBER);
     boost::asio::ip::tcp::socket sock(ioc);
     boost::system::error_code error = boost::asio::error::host_not_found;
     sock.connect(remote_ep, error);

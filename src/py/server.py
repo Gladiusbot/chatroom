@@ -4,15 +4,21 @@
 import threading
 import socket
 import time
+import sys
 
 MAX_USER_COUNT = 5
-DEBUG_BIT = True
+DEBUG_BIT = True 
+PDB_BIT = False 
 FRIEND_REQUEST = [
     "#friendme",    #send request
     "#unfriend",    #unfriend
     "#friends"      #accept
     ]
+args = sys.argv
 
+if PDB_BIT:
+    import pdb
+    pdb.set_trace()
 
 class Server:
     #multi-threading broadcast chat room
@@ -28,6 +34,9 @@ class Server:
         self.pending_request = {}
         #build server socket
         while True:
+            if len(args) == 2:
+                self.server_port = int(args[1])
+                break
             if DEBUG_BIT:
                 self.server_port = 58000
                 break
@@ -69,20 +78,20 @@ class Server:
     #worker for threading
     def worker(self, conn, addr, user_id):
         conn.send("Enter Your Name:".encode("utf-8"))
-        user_nickname = conn.recv(1024).strip(b'\n')
-        while user_nickname in self.user_conn.keys() or user_nickname.startswith(b"@"):
+        user_nickname = str(conn.recv(1024), "utf-8").strip('\n')
+        while user_nickname in self.user_conn.keys() or user_nickname.startswith("@"):
             conn.send(
                 "This name is illegal or it's being used by someone else, please try another one:".encode("utf-8")
                 )
-            user_nickname = conn.recv(1024).strip(b'\n')
+            user_nickname = str(conn.recv(1024), "utf-8").strip('\n')
         #acquire locker for sync
         self.user_conn_lock.acquire()
         self.user_conn[user_nickname] = self.user_conn[user_id]
         self.user_conn.pop(user_id)
         self.user_conn_lock.release()
         user_id = user_nickname
-        broadcast_str = str(user_nickname, 'utf-8') + " Entered Chatroom\n"
-        broadcast_str.encode("utf-8")
+        broadcast_str = user_nickname + " Entered Chatroom\n"
+        broadcast_str = broadcast_str.encode("utf-8")
         self.broadcast(broadcast_str)
         reply_str = "Welcome to chat room, type LogOut to exit\n".encode("utf-8")
         conn.send(reply_str)
@@ -95,16 +104,15 @@ class Server:
             print("got message from" + str(addr) + ":" + client_str)
             #close connection of logout
             if client_str == "LogOut":
-                broadcast_str = str(user_nickname, 'utf-8') + "Left Chatroom\n"
-                broadcast_str.encode("utf-8")
+                broadcast_str = user_nickname + "Left Chatroom\n"
+                broadcast_str = broadcast_str.encode("utf-8")
                 self.broadcast(broadcast_str)
-                conn.send(("### Bye " + str(user_nickname, 'utf-8') + " ###").encode("utf-8"))
-                time.sleep(5)
+                conn.send(("### Bye " + user_nickname + " ###").encode("utf-8"))
                 self.user_conn_lock.acquire()
                 self.terminate_user(user_nickname)
                 self.user_conn_lock.release()
                 if DEBUG_BIT:
-                    print("removing user thread:", user_nickname)
+                    print("removing user thread:", user_nickname, " users remains in the room ars:")
                     self.user_conn_lock.acquire()
                     print(self.user_conn)
                     self.user_conn_lock.release()
@@ -125,8 +133,11 @@ class Server:
                             request_str = '<System>: ' + user_nickname \
                             + " send you a friend request, type @" \
                             + user_nickname + " #friends to accept"
+                            request_str = request_str.encode('utf-8')
+                            print("#TODO:", request_str.__class__)
                             self.user_conn[target_user].send(request_str)
                             echo_str = '<System>:request sent'
+                            echo_str = echo_str.encode('utf-8')
                             self.user_conn[user_nickname].send(echo_str)
                             self.pending_request_lock.acquire()
                             self.pending_request[target_user] = self.pending_request.get(target_user, []) + [user_nickname]
@@ -163,7 +174,7 @@ class Server:
                             request_str = '<System>: ' + user_nickname \
                             + " and " \
                             + target_user + " are friends now"
-                            request_str.encode('utf-8')
+                            request_str = request_str.encode('utf-8')
                             self.user_conn[user_nickname].send(request_str)
                             self.user_conn[target_user].send(request_str)
                             self.pending_request_lock.acquire()
@@ -196,7 +207,7 @@ class Server:
                         reply_str = "<System>: " + target_user \
                         + " and " + user_nickname \
                         + "are no longer friends"
-                        reply_str.encode('utf-8')
+                        reply_str = reply_str.encode('utf-8')
                         if target_user in self.user_conn.keys():
                             self.user_conn[target_user].send(reply_str)
                         self.user_conn[user_nickname].send(reply_str)
@@ -216,9 +227,9 @@ class Server:
             #broadcast
             if not unicast_bit: 
                 broadcast_str = "<"  \
-                + str(user_nickname, 'utf-8') + "> " \
+                + user_nickname + "> " \
                 + client_str
-                broadcast_str.encode("utf-8")
+                broadcast_str = broadcast_str.encode("utf-8")
                 self.user_conn_lock.acquire()
                 self.broadcast(broadcast_str)
                 self.user_conn_lock.release()
@@ -227,7 +238,8 @@ class Server:
 
     def broadcast(self, output_str):
         #send broadcastsu
-        output_str = output_str.encode('utf-8')
+        if(output_str.__class__ == "str"):
+            output_str = output_str.encode('utf-8')
         for client_id in self.user_conn:
             self.user_conn[client_id].send(output_str)
     
@@ -235,17 +247,17 @@ class Server:
         #check friend relationship for part4
         self.friend_list_lock.acquire()
         if target_user not in self.friend_list.get(source, []) or source not in self.friend_list.get(target_user, []):
-            message_str = "<System>: " + str(target_user, 'utf-8') \
+            message_str = "<System>: " + target_user \
             + " is not your friend, send friend request before wispers."
-            message_str.encode('utf-8')
+            message_str = message_str.encode('utf-8')
             self.user_conn[source].send(message_str)
             self.friend_list_lock.release()
             return
         self.friend_list_lock.release()
         target_str = "<" + source + "> whispers: " + message_str
         echo_str = "whispers to " + "<" + target_user + ">:"+ message_str
-        echo_str.encode('utf-8')
-        target_str.encode('utf-8')
+        echo_str = echo_str.encode('utf-8')
+        target_str = target_str.encode('utf-8')
         self.user_conn[source].send(echo_str)
         self.user_conn[target_user].send(target_str)
 

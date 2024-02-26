@@ -3,6 +3,7 @@
 typedef std::shared_ptr<boost::asio::ip::tcp::socket> socket_ptr;
 std::set<std::shared_ptr<std::thread>> thread_set;
 
+// 服务器的连接
 void session(socket_ptr sock) {
   try {
     for (;;) {
