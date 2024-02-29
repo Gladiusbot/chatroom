@@ -8,7 +8,7 @@ import sys
 
 MAX_USER_COUNT = 5
 DEBUG_BIT = True 
-PDB_BIT = False 
+PDB_BIT = True 
 FRIEND_REQUEST = [
     "#friendme",    #send request
     "#unfriend",    #unfriend
@@ -134,7 +134,6 @@ class Server:
                             + " send you a friend request, type @" \
                             + user_nickname + " #friends to accept"
                             request_str = request_str.encode('utf-8')
-                            print("#TODO:", request_str.__class__)
                             self.user_conn[target_user].send(request_str)
                             echo_str = '<System>:request sent'
                             echo_str = echo_str.encode('utf-8')
@@ -248,7 +247,7 @@ class Server:
         self.friend_list_lock.acquire()
         if target_user not in self.friend_list.get(source, []) or source not in self.friend_list.get(target_user, []):
             message_str = "<System>: " + target_user \
-            + " is not your friend, send friend request before wispers."
+            + " is not your friend, try @username #friendme to send a friend request first."
             message_str = message_str.encode('utf-8')
             self.user_conn[source].send(message_str)
             self.friend_list_lock.release()

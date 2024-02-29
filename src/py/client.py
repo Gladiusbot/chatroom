@@ -5,9 +5,10 @@ import time
 import sys
 
 DEBUG_BIT = False 
+PDB_BIT = False
 args = sys.argv
 
-if DEBUG_BIT:
+if PDB_BIT:
     import pdb
     pdb.set_trace()
 
@@ -48,6 +49,7 @@ def speaking_worker(conn):
                     tmpstr += str(j)
                 try:
                     conn.send(tmpstr.encode("utf-8"))
+                    time.sleep(1)
                 except:
                     print("connection error in speaking thread")
                     break
@@ -67,12 +69,12 @@ def main():
         # else:
         #     break
     #user input server ip and port
-    if DEBUG_BIT:
-        server_ip = "localhost"
-        server_port = 58000
-    elif len(args) == 3:
+    if len(args) == 3:
         server_ip = str(args[1])
         server_port = int(args[2])
+    elif DEBUG_BIT:
+        server_ip = "localhost"
+        server_port = 58000
     else:
         server_ip = str(input("input server ip:"))
         server_port = int(input("input port:"))
