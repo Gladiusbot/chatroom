@@ -83,7 +83,6 @@ void Session::HandleRead(const boost::system::error_code& error,
           memcpy(_recv_head_node->_data + _recv_head_node->_cur_len,
                  _data + copy_len, bytes_transferred);
           _recv_head_node->_cur_len += bytes_transferred;
-          // TODO why global?
           ::memset(_data, 0, MAX_LENGTH);
           _socket.async_read_some(
               boost::asio::buffer(_data, MAX_LENGTH),
