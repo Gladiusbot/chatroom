@@ -1,6 +1,8 @@
 #include "Client.h"
 
 int main() {
+  std::string user_input;
+  std::getline(std::cin, user_input);
   try {
     boost::asio::io_context ioc;
     boost::asio::ip::tcp::endpoint remote_ep(
@@ -14,10 +16,11 @@ int main() {
       return 0;
     }
 
-    std::thread send_thread([&sock]() {
+    std::thread send_thread([&sock, &user_input]() {
       for (;;) {
         std::this_thread::sleep_for(std::chrono::milliseconds(2));
-        const char* request = "hello world!";
+        const char* request = user_input.c_str();
+        // const char* request = "hello world!";
         short request_length = strlen(request);
         char send_data[MAX_LENGTH] = {0};
         // 转为网络字节序
